@@ -1,4 +1,5 @@
 import os
+import sys
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from deepgram import Deepgram
@@ -27,13 +28,24 @@ dg_client = Deepgram(DEEPGRAM_API_KEY)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # YouTube video URL
-url = "https://www.youtube.com/watch?v=pgTBJ8olCGY&ab_channel=FinancialTimes"
+url = "https://www.youtube.com/watch?v=RnfmW4piEXU"
 
 # Initialize YouTube object with progress callback
 yt = YouTube(url, on_progress_callback=on_progress)
 
-# Print the video title
-print(f"Video a ser processado: {yt.title}")
+# Ajusta encoding do stdout/stderr no Windows para evitar erros com títulos contendo caracteres especiais
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
+# Print the video title com fallback seguro de encoding
+try:
+    print(f"Video a ser processado: {yt.title}")
+except Exception:
+    safe_title_print = yt.title.encode('cp1252', errors='replace').decode('cp1252')
+    print(f"Video a ser processado: {safe_title_print}")
 
 # Get audio-only stream
 audio_stream = yt.streams.get_audio_only()
